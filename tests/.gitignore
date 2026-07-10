@@ -1,0 +1,7 @@
+run_tests
+*.o
+*.gcno
+*.gcda
+*.gcov
+mh3u_test_*.sav
+mh3u_ds_tmp/
