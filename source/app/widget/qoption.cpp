@@ -2,6 +2,7 @@
 
 #include <QGridLayout>
 #include <QLabel>
+#include <QMessageBox>
 
 QOption::QOption(QWidget *parent) : QDialog(parent)
 {
@@ -32,5 +33,12 @@ void QOption::load()
 
 void QOption::save()
 {
-    MH3U_DS::readData((lang_t) m_languageButton->currentData().toUInt());
+    lang_t selected = (lang_t) m_languageButton->currentData().toUInt();
+
+    if (selected != MH3U_DS::lang() && !MH3U_DS::readData(selected))
+    {
+        QMessageBox::warning(this, "MH3U - Options",
+            "Failed to load the data files for the selected language.\n\n"
+            "The language has not been changed.");
+    }
 }
