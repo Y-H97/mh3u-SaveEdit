@@ -46,8 +46,6 @@ add_executable(mh3u_se_gui ${SOURCES} ${MOC_SOURCES})
 target_link_libraries(mh3u_se_gui Qt5::Widgets)
 target_include_directories(mh3u_se_gui PRIVATE . MH3U_Save_Editor)
 
-include(CTest)
-
 if(BUILD_TESTING)
     add_executable(
         mh3u_se_security_test
