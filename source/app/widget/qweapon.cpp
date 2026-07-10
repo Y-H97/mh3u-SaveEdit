@@ -1,5 +1,7 @@
 #include "qweapon.hpp"
 
+#include "qutil.hpp"
+
 #include <QGridLayout>
 #include <QLabel>
 
@@ -8,15 +10,9 @@ QWeapon::QWeapon(weapon_t *weapon, QWidget *parent) : QEquipment(NULL, parent)
     this->weapon = weapon;
 
     m_equipmentType = new QComboBox(this);
-    m_equipmentType->addItem("(None)", 0);
-    for (uint32_t i = 0; i < MH3U_DS::equipmentTypes()->size(); i++)
-    {
-        m_equipmentType->addItem(QString(MH3U_DS::equipmentTypes()->at(i).identifier.c_str()), MH3U_DS::equipmentTypes()->at(i).count);
-    }
+    populateComboBox(m_equipmentType, MH3U_DS::equipmentTypes());
 
-    m_foo12 = new QSpinBox(this);
-    m_foo12->setMinimum(0x00);
-    m_foo12->setMaximum(0xff);
+    m_foo12 = makeSpinBox(this, 0x00, 0xff);
 
     const dataset_t *identifier = NULL;
     switch ((equipment_type_e) weapon->equipmentType)
@@ -89,45 +85,23 @@ QWeapon::QWeapon(weapon_t *weapon, QWidget *parent) : QEquipment(NULL, parent)
     }
 
     m_identifier = new QComboBox(this);
-    m_identifier->addItem("(None)", 0);
-    for (uint32_t i = 0; i < identifier->size(); i++)
-    {
-        m_identifier->addItem(QString(identifier->at(i).identifier.c_str()), identifier->at(i).count);
-    }
+    populateComboBox(m_identifier, identifier);
     identifier = NULL;
 
-    m_foo31 = new QSpinBox(this);
-    m_foo31->setMinimum(0x00);
-    m_foo31->setMaximum(0xff);
-    m_foo32 = new QSpinBox(this);
-    m_foo32->setMinimum(0x00);
-    m_foo32->setMaximum(0xff);
-    m_foo41 = new QSpinBox(this);
-    m_foo41->setMinimum(0x00);
-    m_foo41->setMaximum(0xff);
-    m_foo42 = new QSpinBox(this);
-    m_foo42->setMinimum(0x00);
-    m_foo42->setMaximum(0xff);
+    m_foo31 = makeSpinBox(this, 0x00, 0xff);
+    m_foo32 = makeSpinBox(this, 0x00, 0xff);
+    m_foo41 = makeSpinBox(this, 0x00, 0xff);
+    m_foo42 = makeSpinBox(this, 0x00, 0xff);
 
     m_firstJewelIdentifier = new QComboBox(this);
     m_secondJewelIdentifier = new QComboBox(this);
     m_thirdJewelIdentifier = new QComboBox(this);
-    m_firstJewelIdentifier->addItem("(None)", 0);
-    m_secondJewelIdentifier->addItem("(None)", 0);
-    m_thirdJewelIdentifier->addItem("(None)", 0);
-    for (uint32_t i = 0; i < MH3U_DS::jewels()->size(); i++)
-    {
-        m_firstJewelIdentifier->addItem(QString(MH3U_DS::jewels()->at(i).identifier.c_str()), MH3U_DS::jewels()->at(i).count);
-        m_secondJewelIdentifier->addItem(QString(MH3U_DS::jewels()->at(i).identifier.c_str()), MH3U_DS::jewels()->at(i).count);
-        m_thirdJewelIdentifier->addItem(QString(MH3U_DS::jewels()->at(i).identifier.c_str()), MH3U_DS::jewels()->at(i).count);
-    }
+    populateComboBox(m_firstJewelIdentifier, MH3U_DS::jewels());
+    populateComboBox(m_secondJewelIdentifier, MH3U_DS::jewels());
+    populateComboBox(m_thirdJewelIdentifier, MH3U_DS::jewels());
 
-    m_foo81 = new QSpinBox(this);
-    m_foo81->setMinimum(0x00);
-    m_foo81->setMaximum(0xff);
-    m_foo82 = new QSpinBox(this);
-    m_foo82->setMinimum(0x00);
-    m_foo82->setMaximum(0xff);
+    m_foo81 = makeSpinBox(this, 0x00, 0xff);
+    m_foo82 = makeSpinBox(this, 0x00, 0xff);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(new QLabel("Equipment type", this), 0, 0);

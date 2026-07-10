@@ -1,5 +1,7 @@
 #include "qequipment.hpp"
 
+#include "qutil.hpp"
+
 #include <QHBoxLayout>
 
 QEquipment::QEquipment(equipment_t *equipment, QWidget *parent) : QDialog(parent)
@@ -10,60 +12,23 @@ QEquipment::QEquipment(equipment_t *equipment, QWidget *parent) : QDialog(parent
     this->equipment = equipment;
 
     m_equipmentType = new QComboBox(this);
-    m_equipmentType->addItem("(None)", 0);
-    for (uint32_t i = 0; i < MH3U_DS::equipmentTypes()->size(); i++)
-    {
-        m_equipmentType->addItem(QString(MH3U_DS::equipmentTypes()->at(i).identifier.c_str()), MH3U_DS::equipmentTypes()->at(i).count);
-    }
+    populateComboBox(m_equipmentType, MH3U_DS::equipmentTypes());
 
-    //m_foo11 = new QSpinBox(this);
-    //m_foo11->setMinimum(0x00);
-    //m_foo11->setMaximum(0xff);
-    m_foo12 = new QSpinBox(this);
-    m_foo12->setMinimum(0x00);
-    m_foo12->setMaximum(0xff);
-    m_foo21 = new QSpinBox(this);
-    m_foo21->setMinimum(0x00);
-    m_foo21->setMaximum(0xff);
-    m_foo22 = new QSpinBox(this);
-    m_foo22->setMinimum(0x00);
-    m_foo22->setMaximum(0xff);
-    m_foo31 = new QSpinBox(this);
-    m_foo31->setMinimum(0x00);
-    m_foo31->setMaximum(0xff);
-    m_foo32 = new QSpinBox(this);
-    m_foo32->setMinimum(0x00);
-    m_foo32->setMaximum(0xff);
-    m_foo41 = new QSpinBox(this);
-    m_foo41->setMinimum(0x00);
-    m_foo41->setMaximum(0xff);
-    m_foo42 = new QSpinBox(this);
-    m_foo42->setMinimum(0x00);
-    m_foo42->setMaximum(0xff);
-    m_foo51 = new QSpinBox(this);
-    m_foo51->setMinimum(0x00);
-    m_foo51->setMaximum(0xff);
-    m_foo52 = new QSpinBox(this);
-    m_foo52->setMinimum(0x00);
-    m_foo52->setMaximum(0xff);
-    m_foo61 = new QSpinBox(this);
-    m_foo61->setMinimum(0x00);
-    m_foo61->setMaximum(0xff);
-    m_foo62 = new QSpinBox(this);
-    m_foo62->setMinimum(0x00);
-    m_foo62->setMaximum(0xff);
-    m_foo71 = new QSpinBox(this);
-    m_foo71->setMinimum(0x00);
-    m_foo71->setMaximum(0xff);
-    m_foo72 = new QSpinBox(this);
-    m_foo72->setMinimum(0x00);
-    m_foo72->setMaximum(0xff);
-    m_foo81 = new QSpinBox(this);
-    m_foo81->setMinimum(0x00);
-    m_foo81->setMaximum(0xff);
-    m_foo82 = new QSpinBox(this);
-    m_foo82->setMinimum(0x00);
-    m_foo82->setMaximum(0xff);
+    m_foo12 = makeSpinBox(this, 0x00, 0xff);
+    m_foo21 = makeSpinBox(this, 0x00, 0xff);
+    m_foo22 = makeSpinBox(this, 0x00, 0xff);
+    m_foo31 = makeSpinBox(this, 0x00, 0xff);
+    m_foo32 = makeSpinBox(this, 0x00, 0xff);
+    m_foo41 = makeSpinBox(this, 0x00, 0xff);
+    m_foo42 = makeSpinBox(this, 0x00, 0xff);
+    m_foo51 = makeSpinBox(this, 0x00, 0xff);
+    m_foo52 = makeSpinBox(this, 0x00, 0xff);
+    m_foo61 = makeSpinBox(this, 0x00, 0xff);
+    m_foo62 = makeSpinBox(this, 0x00, 0xff);
+    m_foo71 = makeSpinBox(this, 0x00, 0xff);
+    m_foo72 = makeSpinBox(this, 0x00, 0xff);
+    m_foo81 = makeSpinBox(this, 0x00, 0xff);
+    m_foo82 = makeSpinBox(this, 0x00, 0xff);
 
 
     QHBoxLayout *layout = new QHBoxLayout(this);

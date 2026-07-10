@@ -1,5 +1,7 @@
 #include "qitem.hpp"
 
+#include "qutil.hpp"
+
 #include <QHBoxLayout>
 
 QItem::QItem(item_t *item, QWidget *parent) : QDialog(parent)
@@ -7,19 +9,9 @@ QItem::QItem(item_t *item, QWidget *parent) : QDialog(parent)
     this->item = item;
 
     m_id = new QComboBox(this);
-    m_id->addItem("(None)", 0);
-    for (uint32_t i = 0; i < MH3U_DS::items()->size(); i++)
-    {
-        m_id->addItem(QString(MH3U_DS::items()->at(i).identifier.c_str()), MH3U_DS::items()->at(i).count);
-    }
+    populateComboBox(m_id, MH3U_DS::items());
 
-    //m_id = new QSpinBox(this);
-    //m_id->setMinimum(0x0000);
-    //m_id->setMaximum(0xffff);
-
-    m_count = new QSpinBox(this);
-    m_count->setMinimum(0x0000);
-    m_count->setMaximum(0xffff);
+    m_count = makeSpinBox(this, 0x0000, 0xffff);
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->addWidget(m_id);

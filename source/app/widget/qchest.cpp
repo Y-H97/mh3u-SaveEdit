@@ -1,5 +1,7 @@
 #include "qchest.hpp"
 
+#include "qutil.hpp"
+
 #include <QSignalMapper>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -14,13 +16,6 @@
 #include <algorithm>
 #include <set>
 #include <vector>
-
-static bool isDummyIdentifier(const std::string &identifier)
-{
-    std::string s = identifier;
-    std::transform(s.begin(), s.end(), s.begin(), ::toupper);
-    return s.find("DUMMY") != std::string::npos;
-}
 
 static bool isIgnoredChestId(uint16_t id)
 {
@@ -37,7 +32,7 @@ static bool isIgnoredJewelItem(uint16_t id, const std::string &identifier)
     return s.find("JWL") != std::string::npos || s.find("JUWEL") != std::string::npos;
 }
 
-static std::vector<uint16_t> collectUnusedItemIds(MH3U_SE *mh3u)
+static std::set<uint16_t> collectUsedItemIds(MH3U_SE *mh3u)
 {
     std::set<uint16_t> used;
 
@@ -71,61 +66,12 @@ static std::vector<uint16_t> collectUnusedItemIds(MH3U_SE *mh3u)
         }
     }
 
-    std::vector<uint16_t> result;
-    const dataset_t *items = MH3U_DS::items();
-    if (items == NULL)
-        return result;
-
-    for (uint32_t i = 0; i < items->size(); i++)
-    {
-        const dataitem_t &entry = items->at(i);
-        if (isDummyIdentifier(entry.identifier))
-            continue;
-
-        uint16_t id = (uint16_t) entry.count;
-        if (id == 0 || isIgnoredChestId(id) || isIgnoredJewelItem(id, entry.identifier) || used.count(id) != 0)
-            continue;
-
-        result.push_back(id);
-        used.insert(id);
-    }
-
-    return result;
+    return used;
 }
 
 static std::vector<uint16_t> collectUnusedItemIdsInRange(MH3U_SE *mh3u, uint16_t minId, uint16_t maxId)
 {
-    std::set<uint16_t> used;
-
-    for (uint32_t i = 0; i < 3; i++)
-    {
-        for (uint32_t j = 0; j < 8; j++)
-        {
-            uint16_t id = mh3u->savedata->inventory[i][j].id;
-            if (id != 0)
-                used.insert(id);
-        }
-    }
-
-    for (uint32_t i = 0; i < 4; i++)
-    {
-        for (uint32_t j = 0; j < 8; j++)
-        {
-            uint16_t id = mh3u->savedata->pouch[i][j].id;
-            if (id != 0)
-                used.insert(id);
-        }
-    }
-
-    for (uint32_t i = 0; i < 10; i++)
-    {
-        for (uint32_t j = 0; j < 100; j++)
-        {
-            uint16_t id = mh3u->savedata->chest[i][j].id;
-            if (id != 0)
-                used.insert(id);
-        }
-    }
+    std::set<uint16_t> used = collectUsedItemIds(mh3u);
 
     std::vector<uint16_t> result;
     const dataset_t *items = MH3U_DS::items();
@@ -147,6 +93,11 @@ static std::vector<uint16_t> collectUnusedItemIdsInRange(MH3U_SE *mh3u, uint16_t
     }
 
     return result;
+}
+
+static std::vector<uint16_t> collectUnusedItemIds(MH3U_SE *mh3u)
+{
+    return collectUnusedItemIdsInRange(mh3u, 0, 0xffff);
 }
 
 QChest::QChest(MH3U_SE *mh3u, QWidget *parent) : QWidget(parent)
@@ -256,9 +207,8 @@ QChest::~QChest()
     this->mh3u = NULL;
 }
 
-void QChest::fillPanelX99(int panelIndex)
+void QChest::fillPanelWithIds(int panelIndex, const std::vector<uint16_t> &unusedIds)
 {
-    std::vector<uint16_t> unusedIds = collectUnusedItemIds(this->mh3u);
     size_t nextUnused = 0;
 
     for (uint32_t j = 0; j < 100; j++)
@@ -287,6 +237,11 @@ void QChest::fillPanelX99(int panelIndex)
         m_buttons[panelIndex][j]->setText(QString::number(slot.id));
         nextUnused++;
     }
+}
+
+void QChest::fillPanelX99(int panelIndex)
+{
+    fillPanelWithIds(panelIndex, collectUnusedItemIds(this->mh3u));
 }
 
 void QChest::fillPanelRange(int panelIndex)
@@ -323,34 +278,7 @@ void QChest::fillPanelRange(int panelIndex)
         uint16_t minId = (uint16_t) minSpin->value();
         uint16_t maxId = (uint16_t) maxSpin->value();
 
-        std::vector<uint16_t> unusedIds = collectUnusedItemIdsInRange(this->mh3u, minId, maxId);
-        size_t nextUnused = 0;
-
-        for (uint32_t j = 0; j < 100; j++)
-        {
-            item_t &slot = this->mh3u->savedata->chest[panelIndex][j];
-
-if (slot.id != 0 && !isIgnoredChestId(slot.id))
-        {
-            slot.count = 99;
-            continue;
-        }
-
-        if (slot.id != 0 && isIgnoredChestId(slot.id))
-        {
-            slot.id = 0;
-            slot.count = 0;
-            m_buttons[panelIndex][j]->setText(QString::number(0));
-            }
-
-            if (nextUnused >= unusedIds.size())
-                continue;
-
-            slot.id = unusedIds[nextUnused];
-            slot.count = 99;
-            m_buttons[panelIndex][j]->setText(QString::number(slot.id));
-            nextUnused++;
-        }
+        fillPanelWithIds(panelIndex, collectUnusedItemIdsInRange(this->mh3u, minId, maxId));
     }
 }
 

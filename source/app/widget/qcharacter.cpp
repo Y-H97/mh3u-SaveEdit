@@ -1,5 +1,7 @@
 #include "qcharacter.hpp"
 
+#include "qutil.hpp"
+
 #include <QGridLayout>
 #include <QLabel>
 
@@ -8,38 +10,22 @@ QCharacter::QCharacter(MH3U_SE *mh3u, QWidget *parent) : QDialog(parent)
     this->mh3u = mh3u;
 
     m_sexs = new QComboBox(this);
-    for (uint32_t i = 0; i < MH3U_DS::sexs()->size(); i++)
-    {
-        m_sexs->addItem(QString(MH3U_DS::sexs()->at(i).identifier.c_str()), MH3U_DS::sexs()->at(i).count);
-    }
+    populateComboBox(m_sexs, MH3U_DS::sexs(), false);
 
     m_faces = new QComboBox(this);
-    for (uint32_t i = 0; i < MH3U_DS::faces()->size(); i++)
-    {
-        m_faces->addItem(QString(MH3U_DS::faces()->at(i).identifier.c_str()), MH3U_DS::faces()->at(i).count);
-    }
+    populateComboBox(m_faces, MH3U_DS::faces(), false);
 
     m_hairs = new QComboBox(this);
-    for (uint32_t i = 0; i < MH3U_DS::hairs()->size(); i++)
-    {
-        m_hairs->addItem(QString(MH3U_DS::hairs()->at(i).identifier.c_str()), MH3U_DS::hairs()->at(i).count);
-    }
+    populateComboBox(m_hairs, MH3U_DS::hairs(), false);
 
     m_name = new QLineEdit(this);
     m_name->setMaxLength(NAME_SIZE);
-    m_money = new QSpinBox(this);
-    m_money->setMinimum(0x0000000);
-    m_money->setMaximum(0xfffffff);
+    m_money = makeSpinBox(this, 0x0000000, 0xfffffff);
 
     m_voices = new QComboBox(this);
-    for (uint32_t i = 0; i < MH3U_DS::voices()->size(); i++)
-    {
-        m_voices->addItem(QString(MH3U_DS::voices()->at(i).identifier.c_str()), MH3U_DS::voices()->at(i).count);
-    }
+    populateComboBox(m_voices, MH3U_DS::voices(), false);
 
-    m_mogapoint = new QSpinBox(this);
-    m_mogapoint->setMinimum(0x0000000);
-    m_mogapoint->setMaximum(0xfffffff);
+    m_mogapoint = makeSpinBox(this, 0x0000000, 0xfffffff);
 
 
     QGridLayout *layout = new QGridLayout(this);
