@@ -20,6 +20,7 @@ set(SOURCES
     widget/qcharm.cpp
     widget/qweapon.cpp
     widget/qoption.cpp
+    widget/qutil.cpp
     ../../../MH3U\ Save\ Editor/MH3U\ Save\ Editor/mh3u_se.cpp
     ../../../MH3U\ Save\ Editor/MH3U\ Save\ Editor/mh3u_ds.cpp
 )
@@ -38,6 +39,7 @@ set(HEADERS
     widget/qcharm.hpp
     widget/qweapon.hpp
     widget/qoption.hpp
+    widget/qutil.hpp
     ../../../MH3U\ Save\ Editor/MH3U\ Save\ Editor/mh3u_se.hpp
     ../../../MH3U\ Save\ Editor/MH3U\ Save\ Editor/mh3u_ds.hpp
 )

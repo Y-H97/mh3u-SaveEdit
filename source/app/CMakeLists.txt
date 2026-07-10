@@ -38,6 +38,7 @@ set(SOURCES
     widget/qcharm.cpp
     widget/qweapon.cpp
     widget/qoption.cpp
+    widget/qutil.cpp
     "../../../../source/app/MH3U_Save_Editor/mh3u_se.cpp"
     "../../../../source/app/MH3U_Save_Editor/mh3u_ds.cpp"
 )

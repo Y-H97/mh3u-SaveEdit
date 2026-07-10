@@ -1,5 +1,7 @@
 #include "qbox.hpp"
 
+#include "qutil.hpp"
+
 #include <QSignalMapper>
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -10,13 +12,6 @@
 #include <cstring>
 #include <set>
 #include <vector>
-
-static bool isDummyIdentifier(const std::string &identifier)
-{
-    std::string s = identifier;
-    std::transform(s.begin(), s.end(), s.begin(), ::toupper);
-    return s.find("DUMMY") != std::string::npos;
-}
 
 static std::vector<std::pair<uint8_t, uint16_t>> collectUnusedEquipment(MH3U_SE *mh3u)
 {

@@ -8,6 +8,9 @@
 #include <QWidget>
 #include <QPushButton>
 
+#include <cstdint>
+#include <vector>
+
 class QChest : public QWidget
 {
     Q_OBJECT
@@ -18,6 +21,8 @@ public:
 private:
     MH3U_SE *mh3u;
     QPushButton *m_buttons[10][100];
+
+    void fillPanelWithIds(int panelIndex, const std::vector<uint16_t> &unusedIds);
 
 public slots:
     void buttonClicked(int id);
