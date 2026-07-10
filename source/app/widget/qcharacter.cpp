@@ -1,7 +1,11 @@
 #include "qcharacter.hpp"
 
+#include <QByteArray>
 #include <QGridLayout>
 #include <QLabel>
+
+#include <algorithm>
+#include <cstring>
 
 QCharacter::QCharacter(MH3U_SE *mh3u, QWidget *parent) : QDialog(parent)
 {
@@ -74,7 +78,17 @@ void QCharacter::load()
     m_sexs->setCurrentIndex(m_sexs->findData(mh3u->savedata->sex +1));
     m_faces->setCurrentIndex(m_faces->findData(mh3u->savedata->face +1));
     m_hairs->setCurrentIndex(m_hairs->findData(mh3u->savedata->hair +1));
-    m_name->setText(reinterpret_cast<const char*>(mh3u->savedata->name));
+    int nameLength = 0;
+    while (nameLength < NAME_SIZE && mh3u->savedata->name[nameLength] != 0)
+    {
+        nameLength++;
+    }
+    m_name->setText(
+        QString::fromUtf8(
+            reinterpret_cast<const char*>(mh3u->savedata->name),
+            nameLength
+        )
+    );
     m_money->setValue(mh3u->savedata->money);
     m_voices->setCurrentIndex(m_voices->findData(mh3u->savedata->voice +1));
     m_mogapoint->setValue(mh3u->savedata->mogapoint);
@@ -85,7 +99,13 @@ void QCharacter::save()
     mh3u->savedata->sex = m_sexs->currentData().toInt() -1;
     mh3u->savedata->face = m_faces->currentData().toInt() -1;
     mh3u->savedata->hair = m_hairs->currentData().toInt() -1;
-    strncpy((char*) mh3u->savedata->name, m_name->text().toStdString().c_str(), NAME_SIZE);
+    QByteArray name = m_name->text().toUtf8();
+    std::memset(mh3u->savedata->name, 0, NAME_SIZE);
+    std::memcpy(
+        mh3u->savedata->name,
+        name.constData(),
+        std::min(name.size(), static_cast<int>(NAME_SIZE))
+    );
     mh3u->savedata->money = m_money->value();
     mh3u->savedata->voice = m_voices->currentData().toInt() -1;
     mh3u->savedata->mogapoint = m_mogapoint->value();

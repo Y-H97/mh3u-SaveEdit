@@ -1,9 +1,12 @@
 #include "mh3u_se.hpp"
 
+#include <algorithm>
+
 
 MH3U_SE::MH3U_SE()
 {
 	savedata = NULL;
+	std::fill(buffer, buffer + SAVEFILE_SIZE, 0);
 }
 
 
@@ -27,9 +30,9 @@ bool MH3U_SE::loaded()
 
 bool MH3U_SE::load(std::string input)
 {
-	std::stringstream ss;
 	std::ifstream fs;
-	uint8_t tmp_c;
+	save_buffer_t inputBuffer = {};
+	save_t inputSave = {};
 
 	try
 	{
@@ -40,43 +43,49 @@ bool MH3U_SE::load(std::string input)
 			return false;
 		}
 
-		while(fs.good())
+		fs.seekg(0, std::fstream::end);
+		if (fs.tellg() != SAVEFILE_SIZE)
 		{
-			fs.read((char*)&tmp_c, 1);
-			ss.write((char*)&tmp_c, 1);
+			return false;
+		}
+
+		fs.seekg(0, std::fstream::beg);
+		fs.read((char*) inputBuffer, SAVEFILE_SIZE);
+		if (fs.gcount() != SAVEFILE_SIZE)
+		{
+			return false;
 		}
 		fs.close();
 
-		this->filename = input;
-
-		cdelete(savedata);
-		savedata = new save_t();
+		std::stringstream ss(
+			std::string((const char*) inputBuffer, SAVEFILE_SIZE)
+		);
 	
 		ss.seekg(SEX_OFFSET, ss.beg);
-		ss.read((char*)&(savedata->sex), SEX_SIZE);
+		ss.read((char*)&(inputSave.sex), SEX_SIZE);
 
 		ss.seekg(FACE_OFFSET, ss.beg);
-		ss.read((char*)&(savedata->face), FACE_SIZE);
+		ss.read((char*)&(inputSave.face), FACE_SIZE);
 
 		ss.seekg(HAIR_OFFSET, ss.beg);
-		ss.read((char*)&(savedata->hair), HAIR_SIZE);
+		ss.read((char*)&(inputSave.hair), HAIR_SIZE);
 
 		ss.seekg(NAME_OFFSET, ss.beg);
-		ss.read((char*) (savedata->name), NAME_SIZE);
+		ss.read((char*) (inputSave.name), NAME_SIZE);
 
 		ss.seekg(MONEY_OFFSET, ss.beg);
-		ss.read((char*)&(savedata->money), MONEY_SIZE);
+		ss.read((char*)&(inputSave.money), MONEY_SIZE);
 	
 		ss.seekg(VOICE_OFFSET, ss.beg);
-		ss.read((char*)&(savedata->voice), VOICE_SIZE);
+		ss.read((char*)&(inputSave.voice), VOICE_SIZE);
 
 		ss.seekg(INVENTORY_OFFSET, ss.beg);
 		for (uint32_t i = 0; i < 3; i++)
 		{
 			for (uint32_t j = 0; j < 8; j++)
 			{
-				ss.read((char*)&(savedata->inventory[i][j].id), SHORT_SIZE);
-				ss.read((char*)&(savedata->inventory[i][j].count), SHORT_SIZE);
+				ss.read((char*)&(inputSave.inventory[i][j].id), SHORT_SIZE);
+				ss.read((char*)&(inputSave.inventory[i][j].count), SHORT_SIZE);
 			}
 		}
 
@@ -85,8 +94,8 @@ bool MH3U_SE::load(std::string input)
 		{
 			for (uint32_t j = 0; j < 8; j++)
 			{
-				ss.read((char*)&(savedata->pouch[i][j].id), SHORT_SIZE);
-				ss.read((char*)&(savedata->pouch[i][j].count), SHORT_SIZE);
+				ss.read((char*)&(inputSave.pouch[i][j].id), SHORT_SIZE);
+				ss.read((char*)&(inputSave.pouch[i][j].count), SHORT_SIZE);
 			}
 		}
 	
@@ -95,8 +104,8 @@ bool MH3U_SE::load(std::string input)
 		{
 			for (uint32_t j = 0; j < 100; j++)
 			{
-				ss.read((char*)&(savedata->chest[i][j].id), SHORT_SIZE);
-				ss.read((char*)&(savedata->chest[i][j].count), SHORT_SIZE);
+				ss.read((char*)&(inputSave.chest[i][j].id), SHORT_SIZE);
+				ss.read((char*)&(inputSave.chest[i][j].count), SHORT_SIZE);
 			}
 		}
 
@@ -105,26 +114,28 @@ bool MH3U_SE::load(std::string input)
 		{
 			for (uint32_t j = 0; j < 100; j++)
 			{
-				ss.read((char*)&(savedata->box[i][j]), EQUIPMENT_SIZE);
+				ss.read((char*)&(inputSave.box[i][j]), EQUIPMENT_SIZE);
 			}
 		}
 		
 		ss.seekg(MOGAPOINT_OFFSET, ss.beg);
-		ss.read((char*)&(savedata->mogapoint), MOGAPOINT_SIZE);
+		ss.read((char*)&(inputSave.mogapoint), MOGAPOINT_SIZE);
 
-
-		ss.seekg(0, ss.beg);
-		for (uint32_t i = 0; ss.good() && i < SAVEFILE_SIZE; i++)
+		if (!ss)
 		{
-			ss.read((char*)&tmp_c, BYTE_SIZE);
-			buffer[i] = tmp_c;
+			return false;
 		}
+
+		save_t* newSavedata = new save_t(inputSave);
+		cdelete(savedata);
+		savedata = newSavedata;
+		std::copy(inputBuffer, inputBuffer + SAVEFILE_SIZE, buffer);
+		this->filename = input;
 		
 		return true;
 	}
-	catch (std::exception e)
+	catch (const std::exception&)
 	{
-		cdelete(savedata);
 		std::cout << "Problem with ::load!" << std::endl;
 		return false;
 	}
@@ -162,7 +173,7 @@ bool MH3U_SE::save(std::string output)
 
 		return true;
 	}
-	catch(std::exception e)
+	catch(const std::exception&)
 	{
 		std::cout << "Problem with ::save!" << std::endl;
 		return false;
@@ -231,11 +242,14 @@ bool MH3U_SE::writeBuffer()
 
 void MH3U_SE::editBuffer(uint32_t pos, uint8_t* ptr, uint8_t size)
 {
-	if (!savedata) return;
-
-	for (uint32_t i = pos; i < SAVEFILE_SIZE && pos >= 0 && i < pos + size; i++)
+	if (!savedata || !ptr || pos >= SAVEFILE_SIZE || size > SAVEFILE_SIZE - pos)
 	{
-		buffer[i] = ptr[i-pos];
+		return;
+	}
+
+	for (uint32_t i = 0; i < size; i++)
+	{
+		buffer[pos + i] = ptr[i];
 	}
 }
 

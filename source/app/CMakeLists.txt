@@ -4,7 +4,7 @@ project(MH3U_Save_Editor_GUI)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 5.15.2 REQUIRED COMPONENTS Widgets)
 
 set(HEADERS
     main.hpp
@@ -38,10 +38,23 @@ set(SOURCES
     widget/qcharm.cpp
     widget/qweapon.cpp
     widget/qoption.cpp
-    "../../../../source/app/MH3U_Save_Editor/mh3u_se.cpp"
-    "../../../../source/app/MH3U_Save_Editor/mh3u_ds.cpp"
+    MH3U_Save_Editor/mh3u_se.cpp
+    MH3U_Save_Editor/mh3u_ds.cpp
 )
 
 add_executable(mh3u_se_gui ${SOURCES} ${MOC_SOURCES})
 target_link_libraries(mh3u_se_gui Qt5::Widgets)
-target_include_directories(mh3u_se_gui PRIVATE . "../../../../source/app/MH3U_Save_Editor/")
+target_include_directories(mh3u_se_gui PRIVATE . MH3U_Save_Editor)
+
+if(BUILD_TESTING)
+    add_executable(
+        mh3u_se_security_test
+        ../tests/mh3u_se_security_test.cpp
+        MH3U_Save_Editor/mh3u_se.cpp
+    )
+    target_include_directories(
+        mh3u_se_security_test
+        PRIVATE MH3U_Save_Editor
+    )
+    add_test(NAME mh3u_se_security_test COMMAND mh3u_se_security_test)
+endif()
