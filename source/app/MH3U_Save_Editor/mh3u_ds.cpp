@@ -73,6 +73,14 @@ bool MH3U_DS::readData(const lang_t lang)
 	result &= MH3U_DS::readDBWeapons(lang);
 	result &= MH3U_DS::readHHWeapons(lang);
 
+	if (!result)
+	{
+		std::cerr << "readData failed: one or more data files could not be loaded for lang " << lang << "." << std::endl;
+		// Reset so the partially-loaded state is not mistaken for a valid one
+		// and a subsequent retry with the same lang is not rejected.
+		MH3U_DS::_lang = LANG_NONE;
+	}
+
 	return result;
 }
 
@@ -116,8 +124,9 @@ bool MH3U_DS::deleteData(void)
 		cdelete(MH3U_DS::_dbWeapons);
 		cdelete(MH3U_DS::_hhWeapons);
 	}
-	catch (std::exception e)
+	catch (const std::exception &e)
 	{
+		std::cerr << "Problem with ::deleteData! " << e.what() << std::endl;
 		return false;
 	}
 
@@ -273,7 +282,7 @@ dataset_t* MH3U_DS::readFile(std::string filename)
 		dataset = new dataset_t();
 	
 		const uint32_t bufferSize = 32;
-		char* buffer = new char[bufferSize];
+		char buffer[bufferSize];
 
 		uint32_t count = 1;
 		while(ss.good())
@@ -290,8 +299,9 @@ dataset_t* MH3U_DS::readFile(std::string filename)
 
 		return dataset;
 	}
-	catch(std::exception e)
+	catch(const std::exception &e)
 	{
+		std::cerr << "Failed to read '" << filename << "': " << e.what() << std::endl;
 		cdelete(dataset);
 		return NULL;
 	}

@@ -43,9 +43,21 @@ bool MH3U_SE::load(std::string input)
 		while(fs.good())
 		{
 			fs.read((char*)&tmp_c, 1);
-			ss.write((char*)&tmp_c, 1);
+			if (fs.good()) ss.write((char*)&tmp_c, 1);
 		}
 		fs.close();
+
+		ss.seekg(0, ss.end);
+		std::streampos fileSize = ss.tellg();
+		ss.seekg(0, ss.beg);
+
+		if (fileSize < (std::streampos) SAVEFILE_SIZE)
+		{
+			std::cerr << "::load failed: '" << input << "' is too small ("
+				<< fileSize << " bytes, expected at least " << SAVEFILE_SIZE
+				<< ")." << std::endl;
+			return false;
+		}
 
 		this->filename = input;
 
@@ -122,10 +134,10 @@ bool MH3U_SE::load(std::string input)
 		
 		return true;
 	}
-	catch (std::exception e)
+	catch (const std::exception &e)
 	{
 		cdelete(savedata);
-		std::cout << "Problem with ::load!" << std::endl;
+		std::cerr << "Problem with ::load! " << e.what() << std::endl;
 		return false;
 	}
 }
@@ -149,6 +161,7 @@ bool MH3U_SE::save(std::string output)
 
 		if (!fs)
 		{
+			std::cerr << "::save failed: could not open '" << output << "' for writing." << std::endl;
 			return false;
 		}
 
@@ -160,11 +173,17 @@ bool MH3U_SE::save(std::string output)
 
 		fs.close();
 
+		if (!fs)
+		{
+			std::cerr << "::save failed: error while writing '" << output << "'." << std::endl;
+			return false;
+		}
+
 		return true;
 	}
-	catch(std::exception e)
+	catch(const std::exception &e)
 	{
-		std::cout << "Problem with ::save!" << std::endl;
+		std::cerr << "Problem with ::save! " << e.what() << std::endl;
 		return false;
 	}
 }

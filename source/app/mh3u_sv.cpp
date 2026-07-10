@@ -5,14 +5,19 @@
 #include <QPushButton>
 
 #include <QFileDialog>
+#include <QMessageBox>
 
 //#define DEBUG
 
-MH3U_SV::MH3U_SV(QWidget *parent) : QWidget(parent)
+MH3U_SV::MH3U_SV(QWidget *parent) : QWidget(parent), mh3u(NULL)
 {
     if (!MH3U_DS::readData(LANG_EN))
     {
         MH3U_DS::deleteData();
+        QMessageBox::critical(this, "MH3U - Save viewer/editor",
+            "Failed to load the data files.\n\n"
+            "Make sure the 'data' folder is present next to the application. "
+            "The editor cannot start without it.");
         return;
     }
 
@@ -140,7 +145,12 @@ void MH3U_SV::loadFile()
 
     if (!filename.isNull())
     {
-        mh3u->load(filename.toStdString());
+        if (!mh3u->load(filename.toStdString()))
+        {
+            QMessageBox::warning(this, "MH3U - Load file",
+                "Failed to load the selected file.\n\n"
+                "It may not be a valid save file, may be too small, or could not be read.");
+        }
     }
 
     this->refresh();
@@ -154,7 +164,12 @@ void MH3U_SV::saveFile()
 
     if (!filename.isNull())
     {
-        mh3u->save(filename.toStdString());
+        if (!mh3u->save(filename.toStdString()))
+        {
+            QMessageBox::critical(this, "MH3U - Save file",
+                "Failed to save the file.\n\n"
+                "The destination may not be writable, or there is no data loaded to save.");
+        }
     }
 
     this->refresh();
