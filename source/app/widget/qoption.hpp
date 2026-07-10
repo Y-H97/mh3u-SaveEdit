@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QComboBox>
 
-#include "../../../../mh3u-se.v1.2c/source/app/MH3U_Save_Editor/mh3u_ds.hpp"
+#include "mh3u_ds.hpp"
 
 class QOption : public QDialog
 {
